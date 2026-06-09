@@ -1,51 +1,62 @@
-import feastData from "../data/feastRotations.json" with { type: "json" };
+const API_BASE = "https://api.elitebot.dev";
 
 interface FeastRotation {
-	endTime: number
-	crops: string[]
-	isGrandFeast: boolean
+	endTime: number;
+	crops: string[];
+	isGrandFeast: boolean;
+}
+
+interface FeastApiResponse {
+	current: FeastRotation | null;
+	next: FeastRotation | null;
 }
 
 class FeastHelper {
-	getCurrentRotation(): FeastRotation | null {
-		const now = Date.now()
-
-		return feastData.find(rotation => now < rotation.endTime) ?? null
+	private async fetchRotations(): Promise<FeastApiResponse> {
+		const response = await fetch(`${API_BASE}/harvest-feast/current`);
+		if (!response.ok) {
+			throw new Error(`Failed to fetch feast data: ${response.status}`);
+		}
+		return response.json() as Promise<FeastApiResponse>;
 	}
 
-	getNextRotation(): FeastRotation | null {
-		const now = Date.now()
-
-		const future = feastData.filter(rotation => now < rotation.endTime)
-
-		return future.length > 1 ? future[1] : null
+	async getCurrentRotation(): Promise<FeastRotation | null> {
+		const { current } = await this.fetchRotations();
+		return current;
 	}
 
-	getFeastSummary(): string {
-		const current = this.getCurrentRotation()
+	async getNextRotation(): Promise<FeastRotation | null> {
+		const { next } = await this.fetchRotations();
+		return next;
+	}
+
+	async getFeastSummary(): Promise<string> {
+		let data: FeastApiResponse;
+		try {
+			data = await this.fetchRotations();
+		} catch {
+			return "Feast schedule unavailable.";
+		}
+
+		const { current, next } = data;
 
 		if (!current) {
-			return "Feast schedule unavailable."
+			return "Feast schedule unavailable.";
 		}
 
-		let response = `Current: ${current.crops.join(", ")}`
-
+		let response = `Current: ${current.crops.join(", ")}`;
 		if (current.isGrandFeast) {
-			response += " (Grand Feast)"
+			response += " (Grand Feast)";
 		}
-
-		const next = this.getNextRotation()
 
 		if (next) {
-			const remaining = next.endTime - current.endTime
-
-			const hours = Math.floor(remaining / (1000 * 60 * 60))
-
-			response += `. Next: ${next.crops.join(", ")} in ${hours}h`
+			const remaining = next.endTime - current.endTime;
+			const hours = Math.floor(remaining / (1000 * 60 * 60));
+			response += `. Next: ${next.crops.join(", ")} in ${hours}h`;
 		}
 
-		return response
+		return response;
 	}
 }
 
-export default new FeastHelper()
+export default new FeastHelper();
