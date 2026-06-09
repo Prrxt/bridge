@@ -30,6 +30,7 @@ import { BooCommand } from "./bridgeCommands/BooCommand.js"
 import { GListCommand, GOnlineCommand } from "./bridgeCommands/GuildStatusCommands.js"
 import { MarketApi } from "../../api/MarketApi.js"
 import { SeenCommand } from "./bridgeCommands/SeenCommand.js"
+import { FeastHelper } from "./bridgeCommands/FeastHelper.js"
 
 export class SimpleCommandManager {
 	commands: SimpleCommand[]
@@ -61,6 +62,7 @@ export class SimpleCommandManager {
 			new CollectionCommand(hypixelAPI),
 			new BestiaryCommand(hypixelAPI),
 			new SeenCommand(hypixelAPI)
+			new FeastHelper(),
 		]
 	}
 
