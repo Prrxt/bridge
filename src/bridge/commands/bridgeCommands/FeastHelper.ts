@@ -1,14 +1,12 @@
 const API_BASE = "https://api.elitebot.dev";
 
-interface FeastRotation {
-	endTime: number;
-	crops: string[];
-	isGrandFeast: boolean;
-}
-
 interface FeastApiResponse {
-	current: FeastRotation | null;
-	next: FeastRotation | null;
+	year: number;
+	month: number;
+	complete: boolean;
+	current: string[];
+	next: Record<string, number | null>;
+	isGrandFeast: boolean;
 }
 
 class FeastHelper {
@@ -20,12 +18,12 @@ class FeastHelper {
 		return response.json() as Promise<FeastApiResponse>;
 	}
 
-	async getCurrentRotation(): Promise<FeastRotation | null> {
+	async getCurrentCrops(): Promise<string[]> {
 		const { current } = await this.fetchRotations();
 		return current;
 	}
 
-	async getNextRotation(): Promise<FeastRotation | null> {
+	async getNextCrops(): Promise<Record<string, number | null>> {
 		const { next } = await this.fetchRotations();
 		return next;
 	}
@@ -38,24 +36,33 @@ class FeastHelper {
 			return "Feast schedule unavailable.";
 		}
 
-		const { current, next } = data;
+		const { current, next, isGrandFeast } = data;
 
-		if (!current) {
+		if (!current || current.length === 0) {
 			return "Feast schedule unavailable.";
 		}
 
-		let response = `Current: ${current.crops.join(", ")}`;
-		if (current.isGrandFeast) {
-			response += " (Grand Feast)";
+		let summary = `Current: ${current.join(", ")}`;
+		if (isGrandFeast) {
+			summary += " (Grand Feast)";
 		}
 
-		if (next) {
-			const remaining = next.endTime - current.endTime;
+		const knownTimestamps = Object.values(next).filter((t): t is number => t !== null);
+
+		if (knownTimestamps.length > 0) {
+			const soonest = Math.min(...knownTimestamps);
+			const nextSoonestCrops = Object.entries(next)
+				.filter(([, t]) => t === soonest)
+				.map(([crop]) => crop);
+			const remaining = soonest * 1000 - Date.now();
 			const hours = Math.floor(remaining / (1000 * 60 * 60));
-			response += `. Next: ${next.crops.join(", ")} in ${hours}h`;
+			summary += `. Next: ${nextSoonestCrops.join(", ")} in ${hours}h`;
+		} else if (Object.keys(next).length > 0) {
+			// Next crops are known but timestamps aren't reported yet
+			summary += `. Next: ${Object.keys(next).join(", ")} (time unknown)`;
 		}
 
-		return response;
+		return summary;
 	}
 }
 
