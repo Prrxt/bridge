@@ -1,4 +1,4 @@
-import feastData from "./feastRotations.json" with { type: "json" }
+import feastData from "../data/feastRotations.json" with { type: "json" };
 
 interface FeastRotation {
 	endTime: number
@@ -6,7 +6,7 @@ interface FeastRotation {
 	isGrandFeast: boolean
 }
 
-class FeastCommandHelper {
+class FeastHelper {
 	getCurrentRotation(): FeastRotation | null {
 		const now = Date.now()
 
@@ -48,4 +48,4 @@ class FeastCommandHelper {
 	}
 }
 
-export default new FeastCommandHelper()
+export default new FeastHelper()
