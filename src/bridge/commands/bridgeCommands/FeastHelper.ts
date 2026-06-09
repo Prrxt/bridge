@@ -1,69 +1,38 @@
-const API_BASE = "https://api.elitebot.dev";
-
-interface FeastApiResponse {
-	year: number;
-	month: number;
-	complete: boolean;
-	current: string[];
-	next: Record<string, number | null>;
-	isGrandFeast: boolean;
-}
+import type { MarketApi } from "./marketApi"
 
 class FeastHelper {
-	private async fetchRotations(): Promise<FeastApiResponse> {
-		const response = await fetch(`${API_BASE}/harvest-feast/current`);
-		if (!response.ok) {
-			throw new Error(`Failed to fetch feast data: ${response.status}`);
-		}
-		return response.json() as Promise<FeastApiResponse>;
-	}
-
-	async getCurrentCrops(): Promise<string[]> {
-		const { current } = await this.fetchRotations();
-		return current;
-	}
-
-	async getNextCrops(): Promise<Record<string, number | null>> {
-		const { next } = await this.fetchRotations();
-		return next;
-	}
+	constructor(private readonly marketApi: MarketApi) {}
 
 	async getFeastSummary(): Promise<string> {
-		let data: FeastApiResponse;
+		let data
 		try {
-			data = await this.fetchRotations();
+			data = await this.marketApi.getHarvestFeast()
 		} catch {
-			return "Feast schedule unavailable.";
+			return "Feast schedule unavailable."
 		}
 
-		const { current, next, isGrandFeast } = data;
+		const { currentCrops, nextCrops, nextStartTime, isGrandFeast } = data
 
-		if (!current || current.length === 0) {
-			return "Feast schedule unavailable.";
+		if (!currentCrops || currentCrops.length === 0) {
+			return "Feast schedule unavailable."
 		}
 
-		let summary = `Current: ${current.join(", ")}`;
+		let summary = `Current: ${currentCrops.join(", ")}`
 		if (isGrandFeast) {
-			summary += " (Grand Feast)";
+			summary += " (Grand Feast)"
 		}
 
-		const knownTimestamps = Object.values(next).filter((t): t is number => t !== null);
-
-		if (knownTimestamps.length > 0) {
-			const soonest = Math.min(...knownTimestamps);
-			const nextSoonestCrops = Object.entries(next)
-				.filter(([, t]) => t === soonest)
-				.map(([crop]) => crop);
-			const remaining = soonest * 1000 - Date.now();
-			const hours = Math.floor(remaining / (1000 * 60 * 60));
-			summary += `. Next: ${nextSoonestCrops.join(", ")} in ${hours}h`;
-		} else if (Object.keys(next).length > 0) {
-			summary += `. Next: ${Object.keys(next).join(", ")} (time unknown)`;
+		if (nextCrops.length > 0) {
+			summary += `. Next: ${nextCrops.join(", ")}`
+			if (nextStartTime !== null) {
+				const hours = Math.floor((nextStartTime * 1000 - Date.now()) / (1000 * 60 * 60))
+				summary += ` in ${hours}h`
+			} else {
+				summary += ` (time unknown)`
+			}
 		}
 
-		summary += ` (Feast Data via https://eliteskyblock.com/harvest-feast/upcoming)`;
-		return summary;
+		summary += ` (Feast Data via https://eliteskyblock.com/harvest-feast/upcoming)`
+		return summary
 	}
 }
-
-export default new FeastHelper();
