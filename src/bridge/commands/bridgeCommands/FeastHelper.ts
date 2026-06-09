@@ -1,9 +1,15 @@
-import type { MarketApi } from "./marketApi"
+import { SimpleCommand } from "./Command.js"
+import { MarketApi } from "../../../api/MarketApi.js"
 
-class FeastHelper {
-	constructor(private readonly marketApi: MarketApi) {}
+export class FeastHelper extends SimpleCommand {
+	aliases = ["feast"]
+	description = "Shows the current Harvest Feast crops"
 
-	async getFeastSummary(): Promise<string> {
+	constructor(private readonly marketApi: MarketApi) {
+		super()
+	}
+
+	async execute(): Promise<string> {
 		let data
 		try {
 			data = await this.marketApi.getHarvestFeast()
