@@ -61,8 +61,8 @@ export class SimpleCommandManager {
 			new InstabuyPriceCalcCommand(marketApi),
 			new CollectionCommand(hypixelAPI),
 			new BestiaryCommand(hypixelAPI),
-			new SeenCommand(hypixelAPI)
-			new FeastHelper(),
+			new SeenCommand(hypixelAPI),
+			new FeastHelper(marketAPI),
 		]
 	}
 
