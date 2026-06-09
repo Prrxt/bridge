@@ -58,10 +58,10 @@ class FeastHelper {
 			const hours = Math.floor(remaining / (1000 * 60 * 60));
 			summary += `. Next: ${nextSoonestCrops.join(", ")} in ${hours}h`;
 		} else if (Object.keys(next).length > 0) {
-			// Next crops are known but timestamps aren't reported yet
 			summary += `. Next: ${Object.keys(next).join(", ")} (time unknown)`;
 		}
 
+		summary += ` (Feast Data via https://eliteskyblock.com/harvest-feast/upcoming)`;
 		return summary;
 	}
 }
