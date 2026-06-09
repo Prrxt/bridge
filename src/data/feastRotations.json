@@ -1,0 +1,17 @@
+[
+  {
+    "endTime": 1781045220000,
+    "crops": ["Melon", "Mushroom", "Moonflower"],
+    "isGrandFeast": false
+  },
+  {
+    "endTime": 1781081220000,
+    "crops": ["Carrot", "Pumpkin", "Wild Rose"],
+    "isGrandFeast": false
+  },
+  {
+    "endTime": 1781117220000,
+    "crops": ["Wheat", "Nether Wart", "Cocoa Beans"],
+    "isGrandFeast": false
+  }
+]
